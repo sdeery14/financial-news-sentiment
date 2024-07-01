@@ -1,115 +1,186 @@
-# Topic and Sentiment Classification of News Articles
-
-## Overview
-This project focuses on classifying news articles into specific market topics and analyzing their sentiment. The aim is to help investors and companies understand market trends and public sentiment, which are crucial for making informed financial decisions.
+# Financial News Sentiment Analysis
 
 ## Table of Contents
 - [Introduction](#introduction)
+- [Project Structure](#project-structure)
 - [Data Collection](#data-collection)
-- [Libraries Used](#libraries-used)
+  - [Topic Classification Data](#topic-classification-data)
+  - [Sentiment Analysis Data](#sentiment-analysis-data)
+- [Data Exploration](#data-exploration)
 - [Data Preprocessing](#data-preprocessing)
-- [Vectorization](#vectorization)
-- [Modeling](#modeling)
-- [Results](#results)
+  - [Vectorization](#vectorization)
+    - [Vectorization for Topic Analysis](#vectorization-for-topic-analysis)
+    - [Vectorization for Sentiment Analysis](#vectorization-for-sentiment-analysis)
+- [Models](#models)
+  - [Naïve Bayes](#naïve-bayes)
+    - [Topic Classification: Naïve Bayes](#topic-classification-naïve-bayes)
+  - [Support Vector Machine](#support-vector-machine)
+    - [Sentiment Classification: SVM](#sentiment-classification-svm)
+  - [Decision Tree](#decision-tree)
+    - [Topic Classification: Decision Tree](#topic-classification-decision-tree)
+  - [Latent Dirichlet Allocation (LDA)](#latent-dirichlet-allocation-lda)
+    - [Topic Classification: LDA](#topic-classification-lda)
 - [Conclusion](#conclusion)
-- [Authors](#authors)
+- [Requirements](#requirements)
 - [Usage](#usage)
-- [License](#license)
+- [References](#references)
 
 ## Introduction
-Financial companies and investors rely heavily on stock analysis to make informed decisions. News articles play a significant role in shaping these decisions by providing insights into market events, company performances, and economic changes. This project aims to classify news articles into five market topics: Agriculture, Housing, Stocks, Manufacturing, and Technology. Additionally, it predicts the sentiment (Positive, Negative, Neutral) of these articles.
+
+Financial companies and investors leverage stock analysis to navigate through the ever-changing stock market. This project focuses on classifying news articles by market topic and predicting the sentiment of news articles by topic. This analysis is a part of a larger system aimed at predicting stock prices based on news sentiment combined with other analyses.
+
+## Project Structure
+
+```
+financial-news-sentiment
+├── data
+│   ├── NewHeadlines.csv
+│   ├── sentiment_data.csv
+├── docs
+│   ├── analysis-report.docx
+│   ├── NewHeadlines.csv
+├── images
+│   ├── sentiment
+│   ├── topic
+├── reports
+│   ├── sentiment-report.html
+│   ├── topic-report.html
+├── src
+│   ├── config.py
+│   ├── sentiment-analysis.py
+│   ├── topic-classification.py
+├── .gitignore
+├── .python-version
+├── LICENSE
+├── README.md
+├── requirements.txt
+```
 
 ## Data Collection
-### News Articles Labeled by Topic
+
+### Topic Classification Data
 - **Source**: News API (newsapi.org)
 - **Topics**: Agriculture, Housing, Stocks, Manufacturing, Technology
-- **Collection Period**: 8/26/2023 to 9/14/2023
-- **Total Articles**: 9328 after cleaning and removing duplicates
+- **Period**: 8/26/2023 to 9/14/2023
+- **Size**: 9,328 articles (after cleaning)
 
-### News Articles Labeled by Sentiment
-- **Source**: Kaggle (Financial Sentiment Analysis dataset)
-- **Sentiment Labels**: Positive, Negative, Neutral
-- **Total Sentences**: 5836 after cleaning and removing duplicates
+![Article Distribution by Topic](images/readme/topic-distribution.png)
 
-## Libraries Used
-- `pandas`: For data manipulation and organization.
-- `numpy`: For numerical operations.
-- `sklearn`: For machine learning models and vectorization.
-- `matplotlib.pyplot`, `seaborn`, `wordcloud`: For data visualization.
-- `newsapi`: To fetch news articles from News API.
+### Sentiment Analysis Data
+- **Source**: Kaggle (Financial Sentiment Analysis)
+- **Size**: 5,836 sentences (after cleaning)
+
+![Sentiment Distribution](images/readme/sentiment-distribution.png)
+
+## Data Exloration
+
+Visualizations of the data reveal important insights:
+
+- **Word Clouds**:
+  ![Overall Word Cloud](images/readme/topics-wordcloud.png)
+  ![Agriculture Word Cloud](images/readme/agriculture-wordcloud.png)
+  ![Housing Word Cloud](images/readme/housing-wordcloud.png)
+  ![Manufacturing Word Cloud](images/readme/manufacturing-wordcloud.png)
+  ![Stocks Word Cloud](images/readme/stocks-wordcloud.png)
+  ![Technology Word Cloud](images/readme/tech-wordcloud.png)
 
 ## Data Preprocessing
-### Cleaning and Preparation
-- **Duplicates Removal**: Eliminated duplicate rows and rows with missing data.
-- **Balancing Data**: Created a balanced dataset for sentiment analysis to avoid bias.
 
-## Vectorization
-### Topic Analysis
-- **Vectorizer**: CountVectorizer
-- **Parameters**:
-  - Lowercase conversion
-  - Maximum features set to 1500
-  - Removed English stopwords and specific topic words
-- **Word Clouds**: Generated to visualize common words in overall and topic-specific articles.
+### Vectorization
+Vectorization converts text data into numerical format for analysis. This project uses two methods:
+- **CountVectorizer**: Frequency count of each word
+- **TfidfVectorizer**: Term frequency-inverse document frequency
 
-### Sentiment Analysis
-- **Vectorizer**: TfidfVectorizer
-- **Parameters**:
-  - Lowercase conversion
-  - Maximum features set to 1500
-  - Removed English stopwords
-- **Word Clouds**: Generated to visualize common words in overall and sentiment-specific articles.
+#### Vectorization for Topic Analysis
+- Parameters: Lowercase conversion, max features set to 1500, removal of English stop words and topic words.
 
-## Modeling
-### Algorithms Used
-1. **Naive Bayes**:
-   - Assumes independence among words.
-   - Uses word frequencies for classification.
-   - Implemented with `MultinomialNB` from Scikit-Learn.
-2. **Support Vector Machine (SVM)**:
-   - Finds the optimal hyperplane for classification.
-   - Uses linear kernel for text data.
-   - Implemented with `SVC` from Scikit-Learn.
-3. **Decision Tree**:
-   - Non-linear model that splits data based on feature values.
-   - Visualizes decision-making process.
-   - Implemented with `DecisionTreeClassifier` from Scikit-Learn.
-4. **Latent Dirichlet Allocation (LDA)**:
-   - Identifies hidden topics in text.
-   - Assumes documents are mixtures of topics and topics are mixtures of words.
-   - Implemented with `LatentDirichletAllocation` from Scikit-Learn.
+#### Vectorization for Sentiment Analysis
+- Parameters: Lowercase conversion, max features set to 1500, removal of English stop words.
 
-### Model Tuning and Evaluation
-- **Cross-Validation**: 3-fold cross-validation for performance evaluation.
-- **Confusion Matrix**: To visualize model predictions.
-- **Accuracy Metrics**: Used to compare model performance.
+## Topic Classification
 
-## Results
-### Topic Classification
-- **Best Model**: Naive Bayes with Count Vectorization
-  - **Accuracy**: Highest cross-validation and test accuracy.
-  - **Confusion Matrix**: Stocks had the highest precision and recall.
-  - **Important Words**: Key words influencing topic predictions were identified.
+![Topic Classification Results](images/readme/topics-results.png)
 
-### Sentiment Classification
-- **Best Model**: Support Vector Machine with Tfidf Vectorization on Unbalanced Data
-  - **Accuracy**: Best performance on unbalanced data.
-  - **Confusion Matrix**: High precision and recall for neutral sentiment.
-  - **Balanced Data Performance**: Improved negative sentiment prediction.
+### Naïve Bayes
+Naïve Bayes uses Bayes' theorem to classify text data based on word frequencies.
+- **Best precision**: Stocks (74%)
+- **Best recall**: Stocks (76%)
+
+![Topic Classificatin Naive Bayes](images/readme/topics-nb-confusion-matrix.png)
+
+The Naive Bayes model also returned log probabilities of each word for each label. The table below shows the top 10 most important words in each topic for the prediction. 
+
+![Topic Classification Important Words](images/readme/topics-nb-topwords.png)
+
+### Latent Dirichlet Allocation (LDA)
+LDA uses Bayesian probabilities to discover hidden topics in text data.
+- **Number of topics**: 5 distinct groups
+![LDA Clustering of Topics](images/readme/topics-lda.png)
+
+## Sentiment Analysis Models
+
+![Sentiment Results](images/readme/sentiment-results.png)
+
+### Support Vector Machine
+SVM finds a hyperplane that separates data into different classes.
+
+#### Sentiment Classification: SVM
+- **Best precision (unbalanced)**: Neutral (72%)
+- **Best recall (unbalanced)**: Neutral (90%)
+- **Best precision (balanced)**: Negative (63%)
+- **Best recall (balanced)**: Negative (67%)
+![Sentiment SVM Confusion MAtrix](images/readme/sentiment-svm-confusion-matrix.png)
+
+#### Sentiment Predictions by Topic
+![Sentiment Predictions](images/readme/sentiment-predictions.png)
 
 ## Conclusion
-This analysis successfully created models to classify news articles by topic and predict their sentiment. The models can be integrated into larger systems to provide valuable insights for financial analysis and decision-making.
+Traders on Wall Street continuously strive to anticipate changes in stock prices. While traditional financial forecasting methods based on historical performance are useful, they often fail to account for significant unfolding events that can drastically alter economic trajectories. To bridge this gap, investors rely on news to gauge market sentiment and identify emerging trends. Financial firms employ analysts to implement sophisticated systems that can process and analyze news data. This process begins with topic classification, where news articles are categorized by subject matter, followed by sentiment analysis, which determines whether the content is positive, negative, or neutral.
 
-## Authors
-- **Evan Helig** - eahelig@syr.edu
-- **Dimetrius Johnson** - djohns66@syr.edu
-- **Sean Deery** - sdeery@syr.edu
+The project aimed to develop a system for topic classification and sentiment analysis of financial news. The topic classifier achieved a 60% accuracy rate, which, despite some overlap among topics, is a promising result given the complexity of the task. Importantly, the classifier showed no significant bias towards any single topic. The sentiment classifier reached a 64% accuracy rate, effectively balancing between predicting positive, negative, and neutral sentiments. While another model exhibited higher overall accuracy, it failed to adequately predict negative sentiments, reducing its practical utility. With further improvements to accuracy, these models can lay the groundwork for a comprehensive system that can integrate news sentiment analysis with traditional financial data to enhance stock price predictions.
+
+## Requirements
+
+- Python 3.10.11
+- Scikit-Learn
+- Pandas
+- Numpy
 
 ## Usage
-To run this project locally:
-1. Clone the repository: `git clone <repository-url>`
-2. Install required libraries
-3. Run the python files
 
-## License
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+1. Clone the repository:
+
+```
+git clone <repository-url>
+```
+
+2. Navigate to the project directory:
+
+```
+cd financial-news-sentiment
+```
+
+3. Install requirements
+
+```
+pip install -r requirements.txt
+```
+
+4. Run the topic classification:
+
+```
+python src/topic-classification.py
+```
+
+5. Run the sentiment analysis:
+
+```
+python src/sentiment-analysis.py
+```
+
+## References
+- Weiss, S. M., Indurkhya, N., & Zhang, T. (2015). Fundamentals of Predictive Text Mining.
+- Blei, D. M., Ng, A. Y., & Jordan, M. I. (2003). Latent Dirichlet Allocation.
+- Ohana, B., & Tierney, B. (2009). Sentiment Classification of Reviews using SVMs and LSA.
+
+For more details, please refer to the `docs/analysis-report.docx`.

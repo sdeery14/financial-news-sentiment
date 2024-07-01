@@ -43,15 +43,20 @@ from sklearn.metrics import accuracy_score, classification_report
 
 
 # GET THE LABELED SENTIMENT DATA
-raw_df = pd.read_csv('sentiment_data.csv')
+raw_df = pd.read_csv('data/sentiment_data.csv')
 
 # rename the columns to Text and Label
 raw_df= raw_df.rename(columns={"Sentence": "Text", "Sentiment": "Label"})
 
 
+# create a directory to store the images
 
+# Get the absolute path of the target directory
+output_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'images', 'sentiment'))
 
-
+# Create the 'images/sentiment' directory if it doesn't exist
+if not os.path.exists(output_dir):
+    os.makedirs(output_dir)
 
 
 
@@ -110,12 +115,12 @@ def explore_distribution(df, df_name):
     
     # create the countplot to the html
     sns.countplot(x=df["Label"])
-    plt.savefig(f"Sentiment_Images/{df_name}_Label_Countplot.png")
+    plt.savefig(f"images/sentiment/{df_name}-label-countplot.png")
     plt.clf()
 
     df_html += f"""
         <div class="mt-5"  width=250>
-            <img src='Sentiment_Images/{df_name}_Label_Countplot.png' class='img-fluid'>
+            <img src='../images/sentiment/{df_name}-label-countplot.png' class='img-fluid'>
         </div>
     """
 
@@ -191,17 +196,17 @@ def create_wordclouds(vect_df, vect_name):
     # create the wordcloud including all of the topics
     wordcloud = WordCloud().generate_from_frequencies(temp_df)
     # save the wordcloud
-    wordcloud.to_file(f"Sentiment_Images/{vect_name}_Wordcloud.png")
+    wordcloud.to_file(f"images/sentiment/{vect_name}_Wordcloud.png")
     
     wc_html = f"""
         <div width=250>
-            <img src='Sentiment_Images/{vect_name}_Wordcloud.png' class='img-fluid'>
+            <img src='../images/sentiment/{vect_name}_Wordcloud.png' class='img-fluid'>
         </div>
     """
     
     # create a directory to store the images
-    if not os.path.exists(f"Sentiment_Images/{vect_name}_Wordclouds"): 
-        os.mkdir(f"Sentiment_Images/{vect_name}_Wordclouds")
+    if not os.path.exists(f"images/sentiment/{vect_name}_Wordclouds"): 
+        os.mkdir(f"images/sentiment/{vect_name}_Wordclouds")
     
     # loop over each topic and generate the wordclouds
     for count, label in enumerate(vect_df.Label.unique()):
@@ -214,13 +219,13 @@ def create_wordclouds(vect_df, vect_name):
         wordcloud = WordCloud().generate_from_frequencies(temp_df)
 
         # save the wordcloud
-        wordcloud.to_file(f"Sentiment_Images/{vect_name}_Wordclouds/{label}_wordcloud.png")
+        wordcloud.to_file(f"images/sentiment/{vect_name}_Wordclouds/{label}_wordcloud.png")
         
         # add the image to the html
         wc_html += f"""
             <h3>{label}</h3>
             <div width=250>
-                <img src='Sentiment_Images/{vect_name}_Wordclouds/{label}_wordcloud.png' class='img-fluid'>
+                <img src='../images/sentiment/{vect_name}_Wordclouds/{label}_wordcloud.png' class='img-fluid'>
             </div>
         """
         
@@ -306,7 +311,7 @@ def lda_analysis(vect, matrix, df_name):
     # create html visualization
     pyLDAvis.enable_notebook() ## not using notebook
     panel = LDAvis.prepare(lda_model, matrix, vect,  mds='tsne')
-    pyLDAvis.save_html(panel, f"Sentiment_Images/{df_name}_{vect_name}_InTheNews.html")
+    pyLDAvis.save_html(panel, f"images/sentiment/{df_name}_{vect_name}_InTheNews.html")
     
     # end the time
     end = time.time()
@@ -389,12 +394,14 @@ def decision_tree_visualization(gridsearch_cv, vect, vect_name):
         
         graph = Source(dot)
         graph.format = 'png'
-        graph.render(f'Sentiment_Images/{vect_name}_DecisionTree')
+        # Render the graph and save it
+        graph_path = os.path.join(output_dir, f'{vect_name}_DecisionTree')
+        graph.render(graph_path)
         
         # add the decision tree to the html
         dtree_html = f"""
             <h4>Decision Tree</h4>
-            <img src='Sentiment_Images/{vect_name}_DecisionTree.png' class='img-fluid'>
+            <img src='../images/sentiment/{vect_name}_DecisionTree.png' class='img-fluid'>
         """
         
     return dtree_html
@@ -437,7 +444,7 @@ def evaluate_model(grid, X_train, X_test, y_train, y_test, vect, vect_name):
     # plot the confusion matrix
     cm.plot()
     # save the image
-    plt.savefig(f'Sentiment_Images/{vect_name}_{model_name}_ConfusionMatrix.png')
+    plt.savefig(f'images/sentiment/{vect_name}_{model_name}-confusion-matrix.png')
     
     
     
@@ -461,7 +468,7 @@ def evaluate_model(grid, X_train, X_test, y_train, y_test, vect, vect_name):
     results_html = f"""
         <h3>{vect_name} {model_name}</h3>
         <div>
-            <img src='Sentiment_Images/{vect_name}_{model_name}_ConfusionMatrix.png' class='img-fluid'>
+            <img src='../images/sentiment/{vect_name}_{model_name}_ConfusionMatrix.png' class='img-fluid'>
         </div>
         {class_report_df_html}
     """
@@ -542,8 +549,7 @@ model_results_df = pd.DataFrame(columns=[
                                         "Test Accuracy"])
 
 
-# create a directory to store the images
-if not os.path.exists("Sentiment_Images"): os.mkdir("Sentiment_Images")
+
 
 
 
@@ -601,7 +607,7 @@ results_overview_html = model_results_df.drop(['Vectorizer', 'Grid'], axis=1).to
 # GET THE NEWS ARTICLES LABELED BY TOPIC
 
 # read csv to dataframe
-new_text_df=pd.read_csv('NewHeadlines.csv')
+new_text_df=pd.read_csv('data/NewHeadlines.csv')
 
 # get the text from the dataframe
 new_text_df = new_text_df[['Headline', 'LABEL']]
@@ -667,11 +673,11 @@ topic_predictions_df = pd.concat([new_text_df.LABEL, results], axis=1)
 
 plt.clf()
 sns.countplot(data=topic_predictions_df[topic_predictions_df.prediction != "neutral"], x="LABEL", hue="prediction")
-plt.savefig("Sentiment_Images/Label_Sentiment_Countplot.png")
+plt.savefig("images/sentiment/label-sentiment-countplot.png")
 
 predictions_html = """
                     <div width=250>
-                        <img src='Sentiment_Images/Label_Sentiment_Countplot.png' class='img-fluid'>
+                        <img src='../images/sentiment/label-sentiment-countplot.png' class='img-fluid'>
                     </div>
                 """
 
@@ -681,7 +687,7 @@ predictions_html = """
 # CREATE HTML OUTPUT
 
 # to open/create a new html file in the write mode
-f = open('My_Sentiment_Report.html', 'w')
+f = open('reports/sentiment-report.html', 'w')
   
 # the html code which will go in the file GFG.html
 html = f"""

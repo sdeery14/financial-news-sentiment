@@ -20,7 +20,6 @@ import requests  ## for getting data from a server GET
 import re   ## for regular expressions
 import numpy as np
 import pandas as pd    ## for dataframes and related
-import config # api key
 import random as rd
 import os
 import time
@@ -102,7 +101,7 @@ endpoint="https://newsapi.org/v2/everything"
 #date_ranges = [('2023-07-12', '2023-07-27'), ('2023-07-28', '2023-08-12')]
 date_ranges = get_date_ranges()
 # set the csv file name
-filename="NewHeadlines.csv"
+filename="data/NewHeadlines.csv"
 
 
 
@@ -138,7 +137,7 @@ filename="NewHeadlines.csv"
 #     for topic in topics:
 #         
 #         # set url post params
-#         URLPost = {'apiKey':config.news_api_key,
+#         URLPost = {'apiKey':os.environ['NEWS_API_KEY'],
 #                     'q':topic,
 #                     'language':'en',
 #                     'from': from_date,
@@ -189,7 +188,12 @@ filename="NewHeadlines.csv"
 
 
 
+# Get the absolute path of the target directory
+output_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'images', 'topic'))
 
+# Create the 'images/sentiment' directory if it doesn't exist
+if not os.path.exists(output_dir):
+    os.makedirs(output_dir)
 
 
 
@@ -261,11 +265,11 @@ def explore_data(text_df):
 
     # create the countplot to the html
     label_countplot = sns.countplot(x=text_df.LABEL)
-    plt.savefig("Label_Countplot.png")
+    plt.savefig("images/topic/Label_Countplot.png")
 
     text_df_html += """
         <div class="mt-5"  width=250>
-            <img src='Label_Countplot.png' class='img-fluid'>
+            <img src='../images/topic/Label_Countplot.png' class='img-fluid'>
         </div>
     """
 
@@ -346,11 +350,11 @@ def create_wordclouds(df, vectorizer_name):
     # create the wordcloud including all of the topics
     wordcloud = WordCloud().generate_from_frequencies(temp_df)
     # save the wordcloud
-    wordcloud.to_file(f"{vectorizer_name}_Wordcloud.png")
+    wordcloud.to_file(f"images/topic/{vectorizer_name}_Wordcloud.png")
     
     
     # create a directory to store the images
-    if not os.path.exists(f"{vectorizer_name}_Wordclouds"): os.mkdir(f"{vectorizer_name}_Wordclouds")
+    if not os.path.exists(f"images/topic/{vectorizer_name}_Wordclouds"): os.mkdir(f"images/topic/{vectorizer_name}_Wordclouds")
     
     # create an empty wordcloud list
     wordcloud_list = []
@@ -366,7 +370,7 @@ def create_wordclouds(df, vectorizer_name):
         # add the wordcloud to the list
         wordcloud_list.append(wordcloud)
         # save the wordcloud
-        wordcloud.to_file(f"{vectorizer_name}_Wordclouds/{topic}_wordcloud.png")
+        wordcloud.to_file(f"images/topic/{vectorizer_name}_Wordclouds/{topic}_wordcloud.png")
         
     # end the time
     end = time.time()
@@ -382,14 +386,14 @@ def explore_vectorized_df(vect, df):
     <h2>{type(vect).__name__} Data</h2>
     {df.head().to_html(index=False, classes="table table-striped")}
     <div width=250>
-        <img src='{type(vect).__name__}_Wordcloud.png' class='img-fluid'>
+        <img src='../images/topic/{type(vect).__name__}_Wordcloud.png' class='img-fluid'>
     </div>
     """
-    for count, filename in enumerate(os.listdir(f"{type(vectorizer).__name__}_Wordclouds")):
+    for count, filename in enumerate(os.listdir(f"images/topic/{type(vectorizer).__name__}_Wordclouds")):
         df_html += f"""
         <h3>{filename}</h3>
         <div width=250>
-            <img src='{type(vect).__name__}_Wordclouds/{filename}' class='img-fluid'>
+            <img src='../images/topic/{type(vect).__name__}_Wordclouds/{filename}' class='img-fluid'>
         </div>
         """
     return df_html
@@ -408,9 +412,9 @@ def lda_analysis(vectorizer, data_matrix):
     lda_Z_DF = lda_model.fit_transform(data_matrix)
     
     # create html visualization
-    pyLDAvis.enable_notebook() ## not using notebook
+    #pyLDAvis.enable_notebook() ## not using notebook
     panel = LDAvis.prepare(lda_model, data_matrix, vectorizer,  mds='tsne')
-    pyLDAvis.save_html(panel, f"{type(vectorizer).__name__}_InTheNews.html")
+    pyLDAvis.save_html(panel, f"images/topic/{type(vectorizer).__name__}_InTheNews.html")
     
     # end the time
     end = time.time()
@@ -497,12 +501,12 @@ def decision_tree_visualization(gridsearch_cv, vect):
         
         graph = Source(dot)
         graph.format = 'png'
-        graph.render(f'{type(vect).__name__}_DecisionTree')
+        graph.render(f'images/topic/{type(vect).__name__}_DecisionTree')
         
         # add the decision tree to the html
         dtree_html = f"""
             <h4>Decision Tree</h4>
-            <img src='{type(vect).__name__}_DecisionTree.png' class='img-fluid'>
+            <img src='../images/topic/{type(vect).__name__}_DecisionTree.png' class='img-fluid'>
         """
         
     return dtree_html
@@ -522,7 +526,7 @@ def get_model_results_html(X_test, y_test, test_prediction):
     # set tight layout
     plt.tight_layout()
     # save the image
-    plt.savefig(f'{type(vectorizer).__name__}_{type(model).__name__}_ConfusionMatrix.png')
+    plt.savefig(f'images/topic/{type(vectorizer).__name__}_{type(model).__name__}_ConfusionMatrix.png')
     
     
     # classification report
@@ -541,7 +545,7 @@ def get_model_results_html(X_test, y_test, test_prediction):
     results_html = f"""
         <h3>{type(vectorizer).__name__}_{type(model).__name__}</h3>
         <div>
-            <img src='{type(vectorizer).__name__}_{type(model).__name__}_ConfusionMatrix.png' class='img-fluid'>
+            <img src='../images/topic/{type(vectorizer).__name__}_{type(model).__name__}_ConfusionMatrix.png' class='img-fluid'>
         </div>
         {class_report_df_html}
     """
@@ -719,7 +723,7 @@ model_results_df_html = model_results_df.sort_values(
 # CREATE AN HTML REPORT
 
 # to open/create a new html file in the write mode
-f = open('My_Report.html', 'w')
+f = open('reports/topic-report.html', 'w')
   
 # the html code which will go in the file GFG.html
 html = f"""
